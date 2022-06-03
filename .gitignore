@@ -1,0 +1,12 @@
+
+# Ignore dynaconf secret files
+.secrets.*
+.schemas/
+.ipynb_checkpoints
+__pycache__/
+metastore_db/
+*.log
+*.ipynb
+*.egg-info
+dist/
+env

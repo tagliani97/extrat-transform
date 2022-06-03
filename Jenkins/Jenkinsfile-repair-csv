@@ -1,0 +1,91 @@
+#!groovy
+    node("G10") {
+
+        def nodeHome = tool 'python-3.8'
+        env.PATH = "${nodeHome}:${env.PATH}"
+        rfc = ""
+
+        if (env.aws_env == 'prod-lc'){
+            credentials = "pagseguro-data-platform"
+            rfc = "true"
+        } else if (env.aws_env == 'data-prod') {
+            credentials = "pagseguro-bigdata-prod"
+            rfc = "true"
+        } else if (env.aws_env == 'data-dev') {
+            credentials = "pagseguro-bigdata-dev"
+        } else if (env.aws_env == 'qa-lc') {
+            credentials = "pagseguro-data-platform-qa"
+        }
+
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${credentials}", usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']])  {
+            try {
+                stage("Clone"){
+                    checkout scm
+                }
+
+                stage("Installing dependencies"){
+                    sh 'chmod +x ./Jenkins/setup.sh'
+                    sh './Jenkins/setup.sh'
+                } 
+
+                 if (rfc == "true"){
+                    stage("[Prod] Open RFC") {
+                        script {
+                            build job: 'COMMONS/create-rfc-team-release',parameters: [
+                                [$class: "StringParameterValue", name: "Coordinator", value: "csobrinho"],
+                                [$class: "StringParameterValue", name: "BuildURL", value: "${env.BUILD_URL}"], 
+                                [$class: "StringParameterValue", name: "MyJobName", value: "${env.JOB_NAME}"],
+                                [$class: "StringParameterValue", name: "Services", value: "{\"id\":\"10840\"}"],
+                                [$class: "StringParameterValue", name: "UrlCommit", value: "https://stash.uol.intranet/projects/AL/repos/aws-infra-glusterfs2/commits" + this.sh(returnStdout: true, script: 'git rev-parse HEAD').trim().toString()],
+                                [$class: "StringParameterValue", name: "Times", value: "{\"id\":\"10405\"}"]]
+                        }
+                    }
+                } 
+
+                stage("Send request to Lagos-Blade"){
+                    
+                    if (header == "true") {
+                        script_header = "--header"
+                    } else {
+                        script_header = ""
+                    } 
+                    
+                    if (delimiter) {
+                        script_delimiter = "--delimiter '${delimiter}'"
+                        echo script_delimiter
+                    } else {
+                        script_delimiter = ""
+                    } 
+
+                    if (null_value) {
+                        script_null_value = "--null_value '${null_value}'"
+                    } else {
+                        script_null_value = ""
+                    } 
+
+                    if (quote) {
+                        script_quote = "--quote '${quote}'"
+                    } else {
+                        script_quote = ""
+                    } 
+
+                    if (charset) {
+                        script_charset = "--charset '${charset}'"
+                    } else {
+                        script_charset = ""
+                    }
+
+
+                    echo "parameters"
+                    script = "python3 ./Jenkins/blade.py csv-${work} --env ${aws_env} --path ${path_csv} --topic_kafka ${topic_kafka} --cluster ${cluster_id} ${script_header} ${script_delimiter} ${script_null_value} ${script_quote} ${script_charset}"
+                    echo aws_env
+                    echo script
+                    sh script
+
+                }        
+            } catch (Exception e) {
+                throw e;
+            }
+        }   
+    deleteDir()
+}

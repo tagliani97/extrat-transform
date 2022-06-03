@@ -1,0 +1,36 @@
+# data-dev:
+#     bucket_kafka: "pagseguro-test"
+#     bucket_reproc: "pagseguro-test"
+#     prefix_kafka: "kafka"
+#     prefix_reproc: "temp"
+#     prefix_history: "history"
+
+# data-prd:
+#     bucket_kafka: "pagseguro-data-platform"
+#     bucket_reproc: "pagseguro-data-platform"
+#     prefix_kafka: "kafka"
+#     prefix_reproc: "temp"
+#     prefix_history: "history"
+
+# qa-lc:
+#     bucket_kafka: "pagseguro-data-platform-qa"
+#     bucket_reproc: "pagseguro-data-platform-qa"
+#     prefix_kafka: "kafka"
+#     prefix_reproc: "temp"
+#     prefix_history: "blade/history"
+
+# prod-lc:
+#     bucket_kafka: "pagseguro-data-platform"
+#     bucket_reproc: "pagseguro-data-platform"
+#     prefix_kafka: "kafka"
+#     prefix_reproc: "temp"
+#     prefix_history: "blade/history"
+
+tests:
+    bucket_kafka: "pagseguro-data-platform-qa"
+    bucket_reproc: "pagseguro-data-platform-qa"
+    prefix_kafka: "krabbe/kafka"
+    prefix_reproc: "krabbe/temp"
+    prefix_history: "krabbe/history"
+
+
